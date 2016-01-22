@@ -141,7 +141,8 @@
         <PasswordBox 
             Name="PasswordBox"
             Grid.Row="8"
-            Grid.Column="1"/>
+            Grid.Column="1"
+            PasswordChanged="PasswordBox_PasswordChanged"/>
 
         <Separator Grid.Row="9" Grid.ColumnSpan="2"/>
 

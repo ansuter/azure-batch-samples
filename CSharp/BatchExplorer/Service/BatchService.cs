@@ -7,11 +7,11 @@ namespace Microsoft.Azure.BatchExplorer.Service
     using Microsoft.Azure.Batch;
     using Microsoft.Azure.Batch.Common;
     using Microsoft.Azure.BatchExplorer.Models;
-    using BatchSharedKeyCredential=Microsoft.Azure.Batch.Auth.BatchSharedKeyCredentials;
-
-    /// <summary>
-    /// Manages communication with the Batch service
-    /// </summary>
+    using BatchSharedKeyCredential = Microsoft.Azure.Batch.Auth.BatchSharedKeyCredentials;
+    using System.Security;
+    using System.Runtime.InteropServices;    /// <summary>
+                                             /// Manages communication with the Batch service
+                                             /// </summary>
     public class BatchService : IDisposable
     {
         public BatchSharedKeyCredential Credentials { get; private set; }
@@ -313,11 +313,14 @@ namespace Microsoft.Azure.BatchExplorer.Service
 
         #region Node related operations
 
-        public Task CreateNodeUserAsync(string poolId, string computeNodeId, string userName, string password, DateTime expiryTime, bool admin)
+        public Task CreateNodeUserAsync(string poolId, string computeNodeId, string userName, SecureString password, DateTime expiryTime, bool admin)
         {
             ComputeNodeUser user = this.Client.PoolOperations.CreateComputeNodeUser(poolId, computeNodeId);
             user.Name = userName;
-            user.Password = password;
+
+            //batch uses string, decrypt password at this point to send it.
+            IntPtr ptr = Marshal.SecureStringToBSTR(password);
+            user.Password = Marshal.PtrToStringUni(ptr);
             user.ExpiryTime = expiryTime;
             user.IsAdmin = admin;
 

@@ -10,6 +10,7 @@ using Microsoft.Azure.Batch.Auth;
 using Microsoft.Azure.Batch.Common;
 using Microsoft.Azure.BatchExplorer.Models;
 using Microsoft.Azure.BatchExplorer.Service;
+using System.Security;
 
 namespace Microsoft.Azure.BatchExplorer.Helpers
 {
@@ -88,7 +89,7 @@ namespace Microsoft.Azure.BatchExplorer.Helpers
             await this.Service.CreatePoolAsync(poolId, virtualMachineSize, targetDedicated, autoScaleFormula, communicationEnabled, osFamily, osVersion, maxTasksPerComputeNode, timeout, startTask);
         }
 
-        public async Task CreateComputeNodeUserAsync(string poolId, string nodeId, string userName, string password, DateTime expiryTime, bool admin)
+        public async Task CreateComputeNodeUserAsync(string poolId, string nodeId, string userName, SecureString password, DateTime expiryTime, bool admin)
         {
             await this.Service.CreateNodeUserAsync(poolId, nodeId, userName, password, expiryTime, admin);
         }

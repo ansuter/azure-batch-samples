@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Batch.Common;
 using Microsoft.Azure.BatchExplorer.Models;
 using Microsoft.Azure.BatchExplorer.Service;
+using System.Security;
 
 namespace Microsoft.Azure.BatchExplorer.Helpers
 {
@@ -77,7 +78,7 @@ namespace Microsoft.Azure.BatchExplorer.Helpers
         /// Creates a ComputeNode user.
         /// </summary>
         /// <returns></returns>
-        Task CreateComputeNodeUserAsync(string poolId, string nodeId, string userName, string password, DateTime expiryTime, bool admin);
+        Task CreateComputeNodeUserAsync(string poolId, string nodeId, string userName, SecureString password, DateTime expiryTime, bool admin);
 
         /// <summary>
         /// Resizes a pool

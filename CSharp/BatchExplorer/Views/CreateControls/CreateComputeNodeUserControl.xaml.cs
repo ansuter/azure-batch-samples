@@ -2,6 +2,7 @@
 
 using System.Windows.Controls;
 using Microsoft.Azure.BatchExplorer.ViewModels;
+using System.Security;
 
 namespace Microsoft.Azure.BatchExplorer.Views.CreateControls
 {
@@ -11,6 +12,7 @@ namespace Microsoft.Azure.BatchExplorer.Views.CreateControls
     public partial class CreateComputeNodeUserControl : UserControl
     {
         private readonly CreateComputeNodeUserViewModel viewModel;
+        
 
         public CreateComputeNodeUserControl(CreateComputeNodeUserViewModel viewModel)
         {
@@ -18,6 +20,14 @@ namespace Microsoft.Azure.BatchExplorer.Views.CreateControls
 
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
+        }
+
+        private void PasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (this.DataContext != null)
+            {
+                (this.DataContext as CreateComputeNodeUserViewModel).Password = (sender as PasswordBox).SecurePassword;
+            }
         }
     }
 }

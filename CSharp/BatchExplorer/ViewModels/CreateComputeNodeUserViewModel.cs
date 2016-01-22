@@ -7,11 +7,14 @@ using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Azure.BatchExplorer.Helpers;
 using Microsoft.Azure.BatchExplorer.Messages;
 using Microsoft.Azure.BatchExplorer.Models;
+using System.Security;
 
 namespace Microsoft.Azure.BatchExplorer.ViewModels
 {
     public class CreateComputeNodeUserViewModel : EntityBase
     {
+        public SecureString Password { get; set; }
+
         #region Services
         private readonly IDataProvider batchService;
         #endregion
@@ -108,15 +111,10 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                     async (o) =>
                     {
                         this.IsBusy = true;
-
-                        //TODO: This breaks MVVM seperation, but due to the way passwordbox works we must...
-                        //TODO: Maybe implement our own passwordbox that allows SecureString bindings or use
-                        //TODO: the codebehind on the view to push this data to us?
-                        PasswordBox pwBox = (PasswordBox)o;
-
+                        
                         try
                         {
-                            await this.CreateVMUserAsync(pwBox.Password);
+                            await this.CreateVMUserAsync(this.Password);
                         }
                         finally
                         {
@@ -127,12 +125,13 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
-        private async Task CreateVMUserAsync(string password)
+        private async Task CreateVMUserAsync(SecureString password)
         {
             try
             {
                 if (this.IsInputValid(password))
                 {
+                    password.MakeReadOnly();
                     Task asyncTask = this.batchService.CreateComputeNodeUserAsync(
                         this.PoolId, 
                         this.ComputeNodeId, 
@@ -155,7 +154,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
-        private bool IsInputValid(string password)
+        private bool IsInputValid(SecureString password)
         {
             if (string.IsNullOrEmpty(this.PoolId))
             {
@@ -167,7 +166,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 Messenger.Default.Send<GenericDialogMessage>(new GenericDialogMessage("Invalid value for user name"));
                 return false;
             }
-            else if (string.IsNullOrEmpty(password))
+            else if (password == null)
             {
                 Messenger.Default.Send<GenericDialogMessage>(new GenericDialogMessage("Invalid value for password"));
                 return false;
