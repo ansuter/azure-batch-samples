@@ -1,8 +1,7 @@
 ﻿//Copyright (c) Microsoft Corporation
 
-using System.Windows.Controls;
 using Microsoft.Azure.BatchExplorer.ViewModels;
-using System.Security;
+using System.Windows.Controls;
 
 namespace Microsoft.Azure.BatchExplorer.Views.CreateControls
 {
