@@ -24,9 +24,10 @@ namespace Microsoft.Azure.BatchExplorer.Views.CreateControls
 
         private void PasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (this.DataContext != null)
+            var context = this.DataContext as CreateComputeNodeUserViewModel;
+            if (context != null)
             {
-                (this.DataContext as CreateComputeNodeUserViewModel).Password = (sender as PasswordBox).SecurePassword;
+                context.Password = (sender as PasswordBox).SecurePassword;
             }
         }
     }
