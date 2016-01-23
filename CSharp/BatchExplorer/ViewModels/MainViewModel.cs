@@ -28,11 +28,11 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
         /// <summary>
         /// The manager for the accounts and the related data
         /// </summary>
-        [ImportMany(typeof(IAccountManager))] 
+        [ImportMany(typeof(IAccountManager))]
         private IEnumerable<Lazy<IAccountManager, IAccountManagerMetadata>> ManagerCollection { get; set; }
 
         public List<AccountManagerContainer> AccountManagers { get; private set; }
-        
+
         public Account ActiveAccount { get; private set; }
 
         #region Public UI Properties
@@ -327,7 +327,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         FirePropertyChangedEvent("TasksTabTitle");
                     }
                 }
-                
+
             }
         }
 
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 }
             }
         }
-        
+
         public bool IsAccountConnected
         {
             get
@@ -376,7 +376,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 return this.ActiveAccount != null;
             }
         }
-        
+
         #endregion
 
         private ObservableCollection<PoolModel> pools;
@@ -390,7 +390,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
 
         private ObservableCollection<JobModel> jobs;
 
-        private Task asyncOperationCompletionMonitoringTask; 
+        private Task asyncOperationCompletionMonitoringTask;
 
         #region Tab title binding properties
         public string JobScheduleTabTitle
@@ -454,7 +454,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
 
             //TODO: Should do this all in an "onload" or something to avoid overloaded constructor work?
             Microsoft.Azure.BatchExplorer.Helpers.Common.LoadPlugins(this);
-            
+
             this.AccountManagers = new List<AccountManagerContainer>();
 
             foreach (Lazy<IAccountManager, IAccountManagerMetadata> manager in this.ManagerCollection)
@@ -462,16 +462,16 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 manager.Value.InitalizeAsync().Wait(); //TODO: Do this elsewhere and use the async method?
                 this.AccountManagers.Add(new AccountManagerContainer(manager.Value, manager.Metadata));
             }
-            
+
             JobTabIsSelected = true;
-            
+
             //Register for async operation updates
             Messenger.Default.Register<AsyncOperationListChangedMessage>(this, (o) => this.FirePropertyChangedEvent("AsyncOperations"));
 
             //Begin a background thread which monitors the status of internal async operations and observes any exceptions
             asyncOperationCompletionMonitoringTask = AsyncOperationTracker.InternalOperationResultHandler();
         }
-        
+
         #region Account operations
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         try
                         {
                             AccountManagerContainer managerContainer = (AccountManagerContainer)o;
-                        
+
                             //Make sure we are prepared to respond to a confirm AND a cancel message - don't forget to unregister both listeners
                             Messenger.Default.Register<ConfirmAccountAddMessage>(this, (message) =>
                                 {
@@ -664,10 +664,10 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         //send the warning
                         Messenger.Default.Send<LaunchMultibuttonDialogMessage>(new LaunchMultibuttonDialogMessage()
                         {
-                            Caption="Confirm Refresh",
+                            Caption = "Confirm Refresh",
                             DialogMessage = "Warning: Refresh All will cause a large amount of data to be transfered and may entail an extended wait time - do you want to proceed?",
                             MessageBoxButton = MessageBoxButton.YesNo,
-                            MessageBoxImage=MessageBoxImage.Warning
+                            MessageBoxImage = MessageBoxImage.Warning
                         });
                     }
                     );
@@ -878,6 +878,19 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
+        public CommandBase AddComputeNodeUserToAllInPool
+        {
+            get
+            {
+                return new CommandBase(
+                    (o) =>
+                    {
+                        ComputeNodeModel selectedComputeNode = (ComputeNodeModel)o;
+                        Messenger.Default.Send(new ShowCreateComputeNodeUsersWindow(selectedComputeNode.ParentPool.Id));
+                    });
+            }
+        }
+
         public CommandBase EditUserOnComputeNode
         {
             get
@@ -945,7 +958,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         {
                             Messenger.Default.Send(new GenericDialogMessage(e.ToString()));
                         }
-                        
+
                     }
                 );
             }
@@ -1092,8 +1105,8 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                                         {
                                             TaskModel taskModel = item as TaskModel;
                                             AsyncOperationTracker.Instance.AddTrackedInternalOperation(taskModel.DeleteAsync());
-                                        } 
-                                        else if (itemType == typeof (ComputeNodeModel))
+                                        }
+                                        else if (itemType == typeof(ComputeNodeModel))
                                         {
                                             throw new NotImplementedException("Not implemented");
                                         }
@@ -1101,11 +1114,11 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                                     Messenger.Default.Unregister<MultibuttonDialogReturnMessage>(this);
                                 });
                             Messenger.Default.Send<LaunchMultibuttonDialogMessage>(new LaunchMultibuttonDialogMessage()
-                                {
-                                    Caption = "Confirm delete",
-                                    DialogMessage = string.Format(diaglogMessageFormat, objectType, objectName),
-                                    MessageBoxButton = MessageBoxButton.YesNo
-                                });
+                            {
+                                Caption = "Confirm delete",
+                                DialogMessage = string.Format(diaglogMessageFormat, objectType, objectName),
+                                MessageBoxButton = MessageBoxButton.YesNo
+                            });
                         }
                     });
             }
@@ -1200,7 +1213,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                                 getPoolTask,
                                 new PoolOperation(PoolOperation.GetPool, poolId)));
                             getPoolTask.ContinueWith((asyncTask) => Messenger.Default.Send(new ShowHeatMapMessage(asyncTask.Result)));
-                    }
+                        }
                 );
             }
         }
@@ -1357,12 +1370,12 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 {
                     System.Threading.Tasks.Task<IList<JobScheduleModel>> getJobSchedulesTask = provider.GetJobScheduleCollectionAsync();
                     AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
-                        getJobSchedulesTask, 
+                        getJobSchedulesTask,
                         new AccountOperation(AccountOperation.ListJobSchedules)));
 
                     this.jobSchedules = new ObservableCollection<JobScheduleModel>(await getJobSchedulesTask);
                     this.jobScheduleCollection = CollectionViewSource.GetDefaultView(this.jobSchedules);
-                    
+
                     this.JobSchedules.Refresh();
                     FirePropertyChangedEvent("JobSchedules");
                     FirePropertyChangedEvent("JobScheduleTabTitle");
@@ -1447,7 +1460,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             try
             {
                 bool? result;
-                
+
                 if (string.IsNullOrEmpty(localDownloadTargetPath))
                 {
                     // Configure save file dialog box
@@ -1500,7 +1513,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         File.Delete(fileName); //Delete the file if we have hit an exception
                     }
                 }
-                
+
                 Messenger.Default.Send(new GenericDialogMessage(e.ToString()));
             }
         }
