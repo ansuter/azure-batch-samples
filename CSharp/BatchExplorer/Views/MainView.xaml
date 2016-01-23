@@ -1048,6 +1048,9 @@
                                         <MenuItem Header="EnableScheduling"
                                             Command="{Binding EnableSchedulingComputeNode}"
                                             CommandParameter="{Binding SelectedComputeNode}"/>
+                                        <MenuItem Header="Add User to All Compute Nodes"
+                                            Command="{Binding AddComputeNodeUserToAllInPool}"
+                                            CommandParameter="{Binding SelectedComputeNode.ParentPool}"/>
                                         <MenuItem Header="Add User"
                                             Command="{Binding AddComputeNodeUser}"
                                             CommandParameter="{Binding SelectedComputeNode}"/>

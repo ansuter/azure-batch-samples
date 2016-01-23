@@ -354,6 +354,27 @@ namespace Microsoft.Azure.BatchExplorer.Views
                     this.genericEmptyWindow = null;
                 });
 
+                Messenger.Default.Register<ShowCreateComputeNodeUsersWindow>(this, (message) =>
+                {
+                    //Make sure we close the popup afterward
+                    Messenger.Default.Register<CloseGenericPopup>(this,
+                        (o) =>
+                        {
+                            this.genericEmptyWindow.Close();
+                            Messenger.Default.Unregister<CloseGenericPopup>(this);
+                        });
+
+                    this.genericEmptyWindow = new GenericEmptyWindow();
+                    this.genericEmptyWindow.Title = "Create Compute Node User";
+                    this.genericEmptyWindow.Content = new CreateControls.CreateComputeNodeUsersControl(new CreateComputeNodeUsersViewModel(MainViewModel.dataProvider, message.PoolId));
+                    this.genericEmptyWindow.Owner = this;
+                    this.genericEmptyWindow.SizeToContent = System.Windows.SizeToContent.Height;
+                    this.IsEnabled = false;
+                    this.genericEmptyWindow.ShowDialog();
+                    this.IsEnabled = true;
+                    this.genericEmptyWindow = null;
+                });
+
                 Messenger.Default.Register<ShowResizePoolWindow>(this, (message) =>
                 {
                     //Make sure we close the popup afterward

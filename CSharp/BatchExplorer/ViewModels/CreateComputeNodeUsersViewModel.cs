@@ -7,11 +7,12 @@ using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Azure.BatchExplorer.Helpers;
 using Microsoft.Azure.BatchExplorer.Messages;
 using Microsoft.Azure.BatchExplorer.Models;
+using System.Linq;
 using System.Security;
 
 namespace Microsoft.Azure.BatchExplorer.ViewModels
 {
-    public class CreateComputeNodeUserViewModel : EntityBase
+    public class CreateComputeNodeUsersViewModel : EntityBase
     {
         public SecureString Password { get; set; }
 
@@ -31,20 +32,6 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             {
                 this.poolId = value;
                 this.FirePropertyChangedEvent("PoolId");
-            }
-        }
-
-        private string computeNodeId;
-        public string ComputeNodeId
-        {
-            get
-            {
-                return this.computeNodeId;
-            }
-            private set
-            {
-                this.computeNodeId = value;
-                this.FirePropertyChangedEvent("ComputeNodeId");
             }
         }
 
@@ -91,19 +78,18 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
         }
         #endregion
 
-        public CreateComputeNodeUserViewModel(IDataProvider batchService, string poolId, string computeNodeId)
+        public CreateComputeNodeUsersViewModel(IDataProvider batchService, string poolId)
         {
             this.batchService = batchService;
 
             this.PoolId = poolId;
-            this.ComputeNodeId = computeNodeId;
             this.IsAdmin = true;
             this.ExpiryTime = DateTime.UtcNow + TimeSpan.FromDays(1);
 
             this.IsBusy = false;
         }
         
-        public CommandBase CreateUser
+        public CommandBase CreateUsers
         {
             get
             {
@@ -114,7 +100,14 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         
                         try
                         {
-                            await this.CreateVMUserAsync(this.Password);
+                            var pools = await batchService.GetPoolCollectionAsync();
+                            var pool = pools.Where(p => p.Id.Equals(this.poolId)).FirstOrDefault();
+                            await pool.RefreshAsync(ModelRefreshType.Children);
+                            var computeNodes = pool.ComputeNodes;
+                            foreach (var cn in computeNodes)
+                            {
+                                await this.CreateVMUserAsync(cn.Id, this.Password);
+                            }
                         }
                         finally
                         {
@@ -125,7 +118,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
-        private async Task CreateVMUserAsync(SecureString password)
+        private async Task CreateVMUserAsync(string computeNodeId, SecureString password)
         {
             try
             {
@@ -133,8 +126,8 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 {
                     password.MakeReadOnly();
                     Task asyncTask = this.batchService.CreateComputeNodeUserAsync(
-                        this.PoolId, 
-                        this.ComputeNodeId, 
+                        this.PoolId,
+                        computeNodeId, 
                         this.UserName,
                         password, 
                         this.ExpiryTime, 
@@ -142,7 +135,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
 
                     AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
                         asyncTask,
-                        new ComputeNodeOperation(ComputeNodeOperation.CreateUser, this.PoolId, this.ComputeNodeId)));
+                        new ComputeNodeOperation(ComputeNodeOperation.CreateUser, this.PoolId, computeNodeId)));
                     await asyncTask;
 
                     Messenger.Default.Send(new CloseGenericPopup());

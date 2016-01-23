@@ -885,8 +885,8 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 return new CommandBase(
                     (o) =>
                     {
-                        ComputeNodeModel selectedComputeNode = (ComputeNodeModel)o;
-                        Messenger.Default.Send(new ShowCreateComputeNodeUsersWindow(selectedComputeNode.ParentPool.Id));
+                        PoolModel pool = o as PoolModel;
+                        Messenger.Default.Send(new ShowCreateComputeNodeUsersWindow(pool.Id));
                     });
             }
         }
