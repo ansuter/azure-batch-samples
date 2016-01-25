@@ -1478,22 +1478,29 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 if (result == true)
                 {
                     // Save document
-                    using (FileStream destStream = new FileStream(fileName, FileMode.Create))
+                    if (nodeFile.IsDirectory.HasValue && nodeFile.IsDirectory.Value)
                     {
-                        if (isNodeFile)
-                        {
-                            await this.SelectedComputeNode.DownloadFileAsync(file, destStream);
-                        }
-                        else
-                        {
-                            await this.SelectedTask.GetTaskFileAsync(file, destStream);
-                        }
+                        await this.SelectedComputeNode.DownloadFilesAsync(file, fileName);
                     }
-
-                    // open text files
-                    if (fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                    else
                     {
-                        Process.Start(fileName);
+                        using (FileStream destStream = new FileStream(fileName, FileMode.Create))
+                        {
+                            if (isNodeFile)
+                            {
+                                await this.SelectedComputeNode.DownloadFileAsync(file, destStream);
+                            }
+                            else
+                            {
+                                await this.SelectedTask.GetTaskFileAsync(file, destStream);
+                            }
+                        }
+
+                        // open text files
+                        if (fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Process.Start(fileName);
+                        }
                     }
                 }
             }

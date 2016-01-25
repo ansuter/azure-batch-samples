@@ -50,19 +50,19 @@ namespace Microsoft.Azure.BatchExplorer.Models
         {
             get { return (this.Files != null && this.Files.Count > 0); }
         }
-        
+
         /// <summary>
         /// The collection of files on this ComputeNode.
         /// </summary>
         [ChangeTracked(ModelRefreshType.Children)]
-        public List<NodeFile> Files 
-        { 
+        public List<NodeFile> Files
+        {
             get
             {
                 return this.files;
             }
-            private set 
-            { 
+            private set
+            {
                 this.files = value;
                 FirePropertyChangedEvent("Files");
             }
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
 
         private ComputeNode ComputeNode { get; set; }
         private List<NodeFile> files;
- 
+
         public ComputeNodeModel(PoolModel parentPool, ComputeNode computeNode)
         {
             this.ComputeNode = computeNode;
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
         }
 
         #region ModelBase implementation
-        
+
         public override List<PropertyModel> PropertyModel
         {
             get { return this.ObjectToPropertyModel(this.ComputeNode); }
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
                 try
                 {
                     Messenger.Default.Send(new UpdateWaitSpinnerMessage(WaitSpinnerPanel.UpperRight, true));
-                    Task asyncTask =  this.ComputeNode.RefreshAsync();
+                    Task asyncTask = this.ComputeNode.RefreshAsync();
                     if (showTrackedOperation)
                     {
                         AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
                     Messenger.Default.Send(new UpdateWaitSpinnerMessage(WaitSpinnerPanel.LowerRight, true));
                     //Set this before the children load so that on revisit we know we have loaded the children (or are in the process)
                     this.HasLoadedChildren = true;
-                    
+
                     try
                     {
                         Task<List<NodeFile>> asyncTask = this.ListFilesAsync();
@@ -332,6 +332,20 @@ namespace Microsoft.Azure.BatchExplorer.Models
         }
 
         /// <summary>
+        /// Downloads a file on this compute node.
+        /// </summary>
+        /// <param name="filePath">The path of the file on the node.</param>
+        /// <param name="rootPath">The local directory for all files to go</param>
+        public async Task DownloadFilesAsync(string filePath, string rootPath)
+        {
+            Task asyncTask = this.DownloadFiles(filePath, rootPath);
+            AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
+                asyncTask,
+                new ComputeNodeOperation(ComputeNodeOperation.GetFile, this.ParentPool.Id, this.ComputeNode.Id)));
+            await asyncTask;
+        }
+
+        /// <summary>
         /// Lists the files on this ComputeNode.
         /// </summary>
         /// <returns></returns>
@@ -340,7 +354,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
             IPagedEnumerable<NodeFile> vmFiles = this.ComputeNode.ListNodeFiles(recursive: true);
 
             List<NodeFile> results = await vmFiles.ToListAsync();
-            
+
             return results;
         }
 
@@ -352,16 +366,44 @@ namespace Microsoft.Azure.BatchExplorer.Models
         /// <returns></returns>
         private async Task DownloadFile(string filePath, Stream destinationStream)
         {
-            FileAttributes attr = File.GetAttributes(filePath);
+            NodeFile file = await this.ComputeNode.GetNodeFileAsync(filePath);
+            await file.CopyToStreamAsync(destinationStream);
+        }
 
-            if (attr.HasFlag(FileAttributes.Directory))
+        /// <summary>
+        /// Downloads the contents of the specific file on the ComputeNode.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        /// <param name="rootPath">The local download folder</param>
+        /// <returns></returns>
+        private async Task DownloadFiles(string filePath, string rootPath)
+        {
+            if (!Directory.Exists(rootPath))
             {
-                
+                Directory.CreateDirectory(rootPath);
             }
-            else
+
+            //now we have to iterate through all of the nodefiles to find ones that match
+            //INEFFICIENT but batch doesn't seem to have an option for this
+            var fileList = await ListFilesAsync();
+            var oFiles = fileList.OrderBy(o => o.Name).Where(o => o.Name.Contains(filePath));
+            foreach (var f in oFiles)
             {
-                NodeFile file = await this.ComputeNode.GetNodeFileAsync(filePath);
-                await file.CopyToStreamAsync(destinationStream);
+                if (f.IsDirectory.HasValue && f.IsDirectory.Value)
+                {
+                    var dirPath = Path.Combine(rootPath, filePath);
+
+                    if (!Directory.Exists(dirPath))
+                        Directory.CreateDirectory(dirPath);
+                }
+                else
+                {
+                    var fPath = Path.Combine(rootPath, f.Name);
+                    using (var fstream = new FileStream(fPath, FileMode.Create))
+                    {
+                        await f.CopyToStreamAsync(fstream);
+                    }
+                }
             }
         }
 
