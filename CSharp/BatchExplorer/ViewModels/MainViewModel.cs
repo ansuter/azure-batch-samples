@@ -1466,8 +1466,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                     // Configure save file dialog box
                     Microsoft.Win32.SaveFileDialog saveFileDlg = new Microsoft.Win32.SaveFileDialog();
                     saveFileDlg.FileName = Path.GetFileName(file);     // Default file name
-                    saveFileDlg.DefaultExt = ".txt"; // Default file extension.
-                    saveFileDlg.Filter = "Text documents (.txt)|*.txt"; // Filter files by extension
+                    saveFileDlg.Filter = "All files (*.*)|*.*"; // Filter files by extension
 
                     // Show save file dialog box
                     result = saveFileDlg.ShowDialog();
