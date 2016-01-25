@@ -337,13 +337,6 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             get
             {
                 return this.selectedTask;
-                if (this.selectedTask != null)
-                {
-                    if (!this.selectedTask.HasLoadedChildren)
-                    {
-                        this.selectedTask.RefreshAsync(ModelRefreshType.Children);
-                    }
-                }
             }
             set
             {
@@ -931,7 +924,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         try
                         {
                             AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(
-                            this.SelectedTask.SelectedTaskFile.Name, Path.GetTempPath(), false));
+                            this.SelectedTask.SelectedTaskFile, Path.GetTempPath(), false));
                         }
                         catch (Exception e)
                         {
@@ -952,7 +945,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                         try
                         {
                             AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(
-                            this.SelectedTask.SelectedTaskFile.Name, isNodeFile: false));
+                            this.SelectedTask.SelectedTaskFile, isNodeFile: false));
                         }
                         catch (Exception e)
                         {
@@ -971,7 +964,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 return new CommandBase(
                     (o) =>
                     {
-                        AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(this.SelectedNodeFile.Name, Path.GetTempPath()));
+                        AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(this.SelectedNodeFile, Path.GetTempPath()));
                     }
                 );
             }
@@ -984,7 +977,7 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
                 return new CommandBase(
                     (o) =>
                     {
-                        AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(this.SelectedNodeFile.Name));
+                        AsyncOperationTracker.Instance.AddTrackedInternalOperation(this.DownloadFileAsync(this.SelectedNodeFile));
                     }
                 );
             }
@@ -1454,8 +1447,9 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
-        private async System.Threading.Tasks.Task DownloadFileAsync(string file, string localDownloadTargetPath = null, bool isNodeFile = true)
+        private async System.Threading.Tasks.Task DownloadFileAsync(NodeFile nodeFile, string localDownloadTargetPath = null, bool isNodeFile = true)
         {
+            string file = nodeFile.Name;
             string fileName = null;
             try
             {

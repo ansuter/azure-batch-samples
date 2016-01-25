@@ -352,8 +352,17 @@ namespace Microsoft.Azure.BatchExplorer.Models
         /// <returns></returns>
         private async Task DownloadFile(string filePath, Stream destinationStream)
         {
-            NodeFile file = await this.ComputeNode.GetNodeFileAsync(filePath);
-            await file.CopyToStreamAsync(destinationStream);
+            FileAttributes attr = File.GetAttributes(filePath);
+
+            if (attr.HasFlag(FileAttributes.Directory))
+            {
+                
+            }
+            else
+            {
+                NodeFile file = await this.ComputeNode.GetNodeFileAsync(filePath);
+                await file.CopyToStreamAsync(destinationStream);
+            }
         }
 
         #endregion
