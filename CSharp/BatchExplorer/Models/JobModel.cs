@@ -11,10 +11,11 @@ namespace Microsoft.Azure.BatchExplorer.Models
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.IO;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Data;
-    
+
     /// <summary>
     /// The data model for the Job object
     /// </summary>
@@ -352,7 +353,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
         {
             try
             {
-                System.Threading.Tasks.Task asyncTask = this.DownloadOutputAsync();
+                System.Threading.Tasks.Task asyncTask = this.DownloadOutputAsync(@"C:\test");
                 AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
                     asyncTask,
                     new JobOperation(JobOperation.Download, this.Job.Id)));
@@ -364,8 +365,34 @@ namespace Microsoft.Azure.BatchExplorer.Models
             }
         }
 
-        public async Task DownloadOutputAsync()
+        public async Task DownloadOutputAsync(string path)
         {
+            //get tasks
+            var tasks = await this.ListTasksAsync();
+            foreach (var t in tasks)
+            {
+                var files = t.OutputFiles;
+
+                var pathToSave = Path.Combine(path, t.Id);
+                if (!Directory.Exists(pathToSave))
+                {
+                    Directory.CreateDirectory(pathToSave);
+                }
+
+                foreach (var f in files)
+                {
+                    var localFile = Path.Combine(pathToSave, Path.GetFileName(f.Name));
+                    if (f.IsDirectory.HasValue && f.IsDirectory.Value)
+                    {
+                        continue;
+                    }
+
+                    using (var fs = new FileStream(localFile, FileMode.Create))
+                    {
+                        await f.CopyToStreamAsync(fs);
+                    }
+                }
+            }
 
         }
 
