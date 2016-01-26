@@ -372,9 +372,9 @@ namespace Microsoft.Azure.BatchExplorer.Models
             foreach (var t in tasks)
             {
                 var files = t.OutputFiles;
+
                 foreach (var f in files)
                 {
-                    
                 }
             }
         }

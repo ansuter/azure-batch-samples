@@ -127,6 +127,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
             this.Task = task;
             this.LastUpdatedTime = DateTime.UtcNow;
             this.SubtasksInfo = null;
+            this.OutputFiles = task.ListNodeFiles();
         }
 
         #region ModelBase implementation
