@@ -15,10 +15,10 @@ namespace Microsoft.Azure.BatchExplorer.Models
     using Microsoft.Azure.BatchExplorer.Helpers;
     using Microsoft.Azure.BatchExplorer.Messages;
     using ViewModels;
-
-    /// <summary>
-    /// The data model for the Job object
-    /// </summary>
+    using System.Net;
+    using System.IO;    /// <summary>
+                        /// The data model for the Job object
+                        /// </summary>
     public class JobModel : ModelBase
     {
         #region Public properties
@@ -346,8 +346,37 @@ namespace Microsoft.Azure.BatchExplorer.Models
             IPagedEnumerable<CloudTask> taskList = this.Job.ListTasks(OptionsModel.Instance.ListDetailLevel);
             
             await taskList.ForEachAsync(item => results.Add(new TaskModel(this, item)));
-
             return results;
+        }
+
+        public async Task DownloadCompleteOutputAsync()
+        {
+            try
+            {
+                System.Threading.Tasks.Task asyncTask = this.DownloadOutputAsync();
+                AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
+                    asyncTask,
+                    new JobOperation(JobOperation.Download, this.Job.Id)));
+                await asyncTask;
+            }
+            catch (Exception e)
+            {
+                Messenger.Default.Send<GenericDialogMessage>(new GenericDialogMessage(string.Format("Job is not yet complete or an exception was thrown {0}", e.Message)));
+            }
+        }
+
+        private async Task DownloadOutputAsync()
+        {
+            //get tasks
+            var tasks = await this.ListTasksAsync();
+            foreach (var t in tasks)
+            {
+                var files = t.OutputFiles;
+                foreach (var f in files)
+                {
+                    
+                }
+            }
         }
 
         #endregion

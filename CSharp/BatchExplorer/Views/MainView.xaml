@@ -638,6 +638,10 @@
                                         Header="Add Task"
                                         Command="{Binding SelectedJob.AddTask}"
                                         CommandParameter="{Binding SelectedJob}"/>
+                                    <MenuItem 
+                                        Header="Download Job Output"
+                                        Command="{Binding DownloadCompleteJobOutput}"
+                                        CommandParameter="{Binding SelectedJob}"/>
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                             <DataGrid.Columns>

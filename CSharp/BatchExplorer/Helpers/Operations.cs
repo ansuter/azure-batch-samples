@@ -75,6 +75,7 @@ namespace Microsoft.Azure.BatchExplorer.Helpers
         public const string Delete = "Delete";
         public const string Refresh = "Refresh";
         public const string ListTasks = "ListTasks";
+        public const string Download = "DownloadAll";
 
         private readonly string jobId;
 

@@ -1021,6 +1021,21 @@ namespace Microsoft.Azure.BatchExplorer.ViewModels
             }
         }
 
+        public CommandBase DownloadCompleteJobOutput
+        {
+            get
+            {
+                return new CommandBase(
+                    (item) =>
+                    {
+                        var job = item as JobModel;
+                        if (job != null)
+                        {
+                            AsyncOperationTracker.Instance.AddTrackedInternalOperation(job.DownloadCompleteOutputAsync());
+                        }
+                    });
+            }
+        }
 
         /// <summary>
         /// Terminate the selected item
