@@ -2,27 +2,26 @@
 
 namespace Microsoft.Azure.BatchExplorer.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Globalization;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Data;
+    using Batch.Apps;
     using GalaSoft.MvvmLight.Messaging;
     using Microsoft.Azure.Batch;
     using Microsoft.Azure.Batch.Common;
     using Microsoft.Azure.BatchExplorer.Helpers;
     using Microsoft.Azure.BatchExplorer.Messages;
-    using ViewModels;
-    using System.Net;
-    using System.IO;    /// <summary>
-                        /// The data model for the Job object
-                        /// </summary>
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Data;
+    
+    /// <summary>
+    /// The data model for the Job object
+    /// </summary>
     public class JobModel : ModelBase
     {
         #region Public properties
-        
+
         /// <summary>
         /// Gets the id of the job
         /// </summary>
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
         /// </summary>
         [ChangeTracked(ModelRefreshType.Basic)]
         public string DisplayName { get { return this.Job.DisplayName; } }
-        
+
         /// <summary>
         /// Gets the creation time of the job.
         /// </summary>
@@ -46,12 +45,12 @@ namespace Microsoft.Azure.BatchExplorer.Models
         /// </summary>
         [ChangeTracked(ModelRefreshType.Basic)]
         public JobState? State { get { return this.Job.State; } }
-        
+
         /// <summary>
         /// Gets the tasks associated with this job.
         /// </summary>
         public List<TaskModel> Tasks { get; private set; }
-        
+
         /// <summary>
         /// Gets the task collection associated with this job.
         /// </summary>
@@ -180,7 +179,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
         #endregion
 
         private CloudJob Job { get; set; }
-        
+
         public JobModel(CloudJob job)
         {
             this.Job = job;
@@ -237,11 +236,11 @@ namespace Microsoft.Azure.BatchExplorer.Models
                 try
                 {
                     //Set this before the children load so that on revisit we know we have loaded the children (or are in the process)
-                    this.HasLoadedChildren = true; 
+                    this.HasLoadedChildren = true;
 
                     System.Threading.Tasks.Task<List<TaskModel>> asyncTask = this.ListTasksAsync();
                     AsyncOperationTracker.Instance.AddTrackedOperation(new AsyncOperationModel(
-                        asyncTask, 
+                        asyncTask,
                         new JobOperation(JobOperation.ListTasks, this.Job.Id)));
 
                     this.Tasks = await asyncTask;
@@ -281,7 +280,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
                 Messenger.Default.Send<GenericDialogMessage>(new GenericDialogMessage(e.ToString()));
             }
         }
-        
+
         /// <summary>
         /// Disable this job
         /// </summary>
@@ -344,7 +343,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
         {
             List<TaskModel> results = new List<TaskModel>();
             IPagedEnumerable<CloudTask> taskList = this.Job.ListTasks(OptionsModel.Instance.ListDetailLevel);
-            
+
             await taskList.ForEachAsync(item => results.Add(new TaskModel(this, item)));
             return results;
         }
@@ -365,18 +364,9 @@ namespace Microsoft.Azure.BatchExplorer.Models
             }
         }
 
-        private async Task DownloadOutputAsync()
+        public async Task DownloadOutputAsync()
         {
-            //get tasks
-            var tasks = await this.ListTasksAsync();
-            foreach (var t in tasks)
-            {
-                var files = t.OutputFiles;
 
-                foreach (var f in files)
-                {
-                }
-            }
         }
 
         #endregion
