@@ -378,7 +378,7 @@ namespace Microsoft.Azure.BatchExplorer.Models
                 {
                     Directory.CreateDirectory(pathToSave);
                 }
-
+                
                 foreach (var f in files)
                 {
                     var localFile = Path.Combine(pathToSave, Path.GetFileName(f.Name));
@@ -394,6 +394,11 @@ namespace Microsoft.Azure.BatchExplorer.Models
                 }
             }
 
+            //now download everything from compute nodes
+            foreach (var t in tasks)
+            {
+                
+            }
         }
 
         #endregion
